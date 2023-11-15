@@ -1,47 +1,41 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-typedef struct fila {
+typedef struct fila
+{
     int *dados;
-    int N, p, u;
+    int N;
+    int p;
+    int u;
 } fila;
 
-int enfileira(fila *f, int x) {
-    // Verificar se a fila está cheia
-    if ((f->u + 1) % f->N == f->p) {
-        // A fila está cheia, redimensionar o vetor dados
-
-        int novoN = f->N * 2;  // Dobrar o tamanho do vetor
-
-        int *novoDados = (int *)malloc(novoN * sizeof(int));
-
-        if (novoDados == NULL) {
-            // Falha na alocação de memória
-            return 0;
+int enfileira(fila *f, int x)
+{
+    if ((f->u + 1) % f->N == f->p) // Cheia
+    {
+        f->dados = realloc(f->dados, 2 * f->N * sizeof(int));
+        if (f->dados == NULL)
+            return 1;
+        for (int i = f->N; i < 2 * f->N; i++)
+            f->dados[i] = 0;
+        if (f->p != 0)
+        {
+            if (f->N - f->p < f->u)
+            {
+                for (int i = f->N - 1; i >= f->p; i--)
+                    f->dados[i + f->N] = f->dados[i];
+                f->p += f->N;
+            }
+            else
+            {
+                for (int i = 0; i < f->u; i++)
+                    f->dados[i + f->N] = f->dados[i];
+                f->u += f->N;
+            }
         }
-
-        // Copiar os elementos da fila atual para o novo vetor
-        int i = 0;
-        int j = f->p;
-
-        while (j != f->u) {
-            novoDados[i] = f->dados[j];
-            i++;
-            j = (j + 1) % f->N;
-        }
-
-        novoDados[i] = f->dados[f->u];  // Copiar o último elemento
-
-        // Atualizar os ponteiros e liberar o antigo vetor de dados
-        f->p = 0;
-        f->u = i;
-        f->N = novoN;
-        free(f->dados);
-        f->dados = novoDados;
+        f->N *= 2;
     }
-
-    // Inserir o elemento x na fila
-    f->u = (f->u + 1) % f->N;
     f->dados[f->u] = x;
-    return 1;
+    f->u = (f->u + 1) % f->N;
+    return 0;
 }

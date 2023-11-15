@@ -1,66 +1,88 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+typedef int value;
+
+typedef struct in_it {
+    value e;
+    struct in_it *prox;
+} in_it;
+
 typedef struct {
-    int *stack;
-    int top;
+    in_it *top;
+    in_it *end;
     int n;
 } pilha;
 
-void startstack(pilha *p, int tam) {
-    p->stack = (int *)malloc(tam * sizeof(int));
-    p->top = -1;
-    p->n = tam;
-
+// Inicializa a pilha
+int startstack(pilha *p) {
+    p->top = NULL;
+    p->end = NULL;
+    p->n = 0;
+    return 0;
 }
 
-void stackup(pilha *p, int value) {
-    p->top++;
-    p->stack[p->top] = value;
-}
+// Se estiver vazia insere valor no início, senão no fim
+int stackup(pilha *p, value e) {
+    in_it *novo_no = malloc(sizeof(in_it));
 
-int unstack(pilha *p) {
-    int value = p->stack[p->top];
-    p->top--;
-    return value;
-}
-
-void printcards(pilha *p) {
-    printf("Cartas descartadas: ");
-    int tamAtual = p->n - 1; //taamanho inicial da pilha
-    for (int i = 0; i < tamAtual; i++) {
-        printf("%d", unstack(p));
-        if (i< tamAtual - 1){
-            stackup(p, unstack(p)); //move o top 
-            printf(", ");
-        }
-
+    if (novo_no == NULL) {
+        return 0;
     }
-    printf("\n");
-        
+
+    novo_no->e = e;
+    novo_no->prox = NULL;
+
+    if (p->top == NULL) {
+        p->top = novo_no;
+        p->end = novo_no;
+    } else {
+        p->end->prox = novo_no;
+        p->end = novo_no;
+    }
+
+    p->n++;
+    return 1;
 }
+
+// Remove valor
+value unstack(pilha *p) {
+    in_it *remove = p->top;
+    value x = remove->e;
+    p->top = remove->prox;
+    free(remove);
+    p->n--;
+    return x;
+}
+
+
+int empty(pilha *p) {
+    return p->n == 0;
+}
+
 
 int main() {
+    pilha *cardstack = (pilha *)malloc(sizeof(pilha));
     int x;
+
+    startstack(cardstack);
     scanf("%d", &x);
 
-    pilha cardstack;
-    startstack(&cardstack, x);
-
-    for (int i = x; i >= 1; i--) { // preenhe a pilha com valores de 1 a n
-        stackup(&cardstack, i);
-
+    for (int i = 1; i <= x; ++i) {
+        stackup(cardstack, i);
     }
 
-    while (cardstack.top>= 1) {
-        printcards(&cardstack);
-      
+    printf("Cartas descartadas: ");
+
+    while (cardstack->n > 2) {
+        printf("%d, ", unstack(cardstack));
+        stackup(cardstack, unstack(cardstack));
     }
 
-    printf("Carta restante: %d\n", cardstack.stack[0]);
+    printf("%d\n", unstack(cardstack));
+    printf("Carta restante: %d\n", unstack(cardstack));
 
-    free(cardstack.stack);
+    free(cardstack);
 
     return 0;
-
 }
